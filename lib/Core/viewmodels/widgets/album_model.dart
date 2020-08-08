@@ -22,9 +22,9 @@ class AlbumModel extends BaseModel {
   }
 
 
-  Future getAlbumIDDeezer(String idalbum) async {
+  Future getSingleAlbumIDDeezer(String idalbum) async {
     setState(ViewState.Busy);
-    singlealbumDeezer = await _api.getAlbumIDDeezer(idalbum);
+    singlealbumDeezer = await _api.getSingleAlbumIDDeezer(idalbum);
     setState(ViewState.Idle);
   }
 
@@ -35,9 +35,9 @@ Future getAlbumsSpotify() async {
     setState(ViewState.Idle);
   }
 
-  Future getAlbumIDSpotify(String idalbum) async {
+  Future getSingleAlbumsSpotify(String idalbum) async {
     setState(ViewState.Busy);
-    singleAlbumSpotify = await _api.getAlbumIDSpotify( idalbum);
+    singleAlbumSpotify = await _api.getSingleAlbumIDSpotify( idalbum);
     setState(ViewState.Idle);
   }
 

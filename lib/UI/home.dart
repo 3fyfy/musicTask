@@ -23,13 +23,13 @@ class _HomeState extends State<Home> {
         backgroundColor: Colors.black,
         elevation: 0,
       ),
-      backgroundColor: Colors.black26,
+     // backgroundColor: Colors.black26,
       body: Container(
         height: height,
         width: width,
-        decoration: BoxDecoration(
-          image: DecorationImage(image: AssetImage("assets/backhome2.jpg"),fit: BoxFit.cover)
-        ),
+//        decoration: BoxDecoration(
+//          image: DecorationImage(image: AssetImage("assets/backhome4.jpg"),fit: BoxFit.contain)
+//        ),
         padding: EdgeInsets.only(top: height*.02,),
         child: ListView(
           children: <Widget>[
@@ -82,7 +82,7 @@ class _HomeState extends State<Home> {
             BaseView<AlbumModel>(
               onModelReady: (model) async{
                 return model.getAlbumsSpotify();},
-              builder: (context, model, child) => (model.albumsSpotify==null)?Container(
+              builder: (context, model, child) => (model.albumsSpotify==null||model.albumsSpotify.albums==null)?Container(
                   height: 100,
                   width: width,
                    child: Center(child: CircularProgressIndicator())):  Container(
@@ -92,7 +92,6 @@ class _HomeState extends State<Home> {
                   scrollDirection: Axis.horizontal,
 
                   itemBuilder: (context, index) {
-
                     return InkWell(
                       onTap: (){
                         Navigator.of(context).push(MaterialPageRoute(builder: (context) => TracksPage(idAlbumSpotify: model.albumsSpotify.albums[index].id),));

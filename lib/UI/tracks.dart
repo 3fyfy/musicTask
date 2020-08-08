@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:musictask/Core/viewmodels/widgets/album_model.dart';
+import 'package:musictask/UI/playmusdic.dart';
 import 'package:musictask/base_view.dart';
 
 class TracksPage extends StatefulWidget {
@@ -33,18 +34,18 @@ class _TracksPageState extends State<TracksPage> {
           body: Container(
             height: height,
             width: width,
-            decoration: BoxDecoration(
-                image: DecorationImage(image: AssetImage("assets/backhome2.jpg"),fit: BoxFit.cover)
-            ),
+//            decoration: BoxDecoration(
+//                image: DecorationImage(image: AssetImage("assets/backhom4.jpg"),fit: BoxFit.contain)
+//            ),
             padding: EdgeInsets.only(top: height*.02,),
             child: BaseView<AlbumModel>(
               onModelReady: (model) async{
 
 
                 if (flag)
-                  return   model.getAlbumIDDeezer(widget.idAlbumDeezer);
+                  return   model.getSingleAlbumIDDeezer(widget.idAlbumDeezer);
                 else
-                  return  model.getAlbumIDSpotify(widget.idAlbumSpotify);},
+                  return  model.getSingleAlbumsSpotify(widget.idAlbumSpotify);},
               builder: (context, model, child) =>((flag)?(model.singlealbumDeezer==null):(model.singleAlbumSpotify==null))?Container(
                   width: width,
                   height:height,
@@ -55,7 +56,7 @@ class _TracksPageState extends State<TracksPage> {
 
                   return InkWell(
                     onTap: (){
-//                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => musicPlayer(model.albums[index].tracks.data[0].preview),));
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => MusicPage(model.singlealbumDeezer.tracks.data[index].title,model.singlealbumDeezer.tracks.data[index].preview),));
                     },
                     child: ListTile(
                       title:Text(model.singlealbumDeezer.tracks.data[index].title,style: TextStyle(color: Colors.black,fontWeight: FontWeight.w700),) ,
@@ -79,7 +80,9 @@ class _TracksPageState extends State<TracksPage> {
 
                   return InkWell(
                     onTap: (){
-//                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => musicPlayer(model.albums[index].tracks.data[0].preview),));
+                      print(model.singleAlbumSpotify.tracks.items[index].externalUrls.spotify);
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => MusicPage(model.singleAlbumSpotify.tracks.items[index].name,model.singleAlbumSpotify.tracks.items[index].externalUrls.spotify+".mp3"),));
+
                     },
                     child: ListTile(
                       title:Text(model.singleAlbumSpotify.tracks.items[index].name) ,

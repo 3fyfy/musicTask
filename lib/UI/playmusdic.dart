@@ -1,30 +1,49 @@
 import 'dart:async';
 import 'dart:io';
-
+import 'package:path_provider/path_provider.dart';
 import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart';
 import 'package:provider/provider.dart';
 
 typedef void OnError(Exception exception);
+enum PlayerState { stopped, playing, paused }
+enum PlayingRouteState { speakers, earpiece }
+AudioPlayer _audioPlayer;
+PlayerState _playerState = PlayerState.stopped;
+Duration _position;
 
 
-class musicPlayer extends StatefulWidget {
-  final String kUrl1;
+class MusicPage extends StatefulWidget {
+  final String url;
+  final String title;
 
-  musicPlayer(this.kUrl1);
+  MusicPage(this.title,this.url);
 
   @override
-  _musicPlayerState createState() => _musicPlayerState();
+  _MusicPageState createState() => _MusicPageState();
 }
 
-class _musicPlayerState extends State<musicPlayer> {
+class _MusicPageState extends State<MusicPage> {
+
+
   AudioCache audioCache = AudioCache();
   AudioPlayer advancedPlayer = AudioPlayer();
   String localFilePath;
+
+  Future<int> _stop() async {
+    final result = await _audioPlayer.stop();
+    if (result == 1) {
+      setState(() {
+        _playerState = PlayerState.stopped;
+        _position = Duration();
+      });
+    }
+    return result;
+  }
+
 
   @override
   void initState() {
@@ -42,29 +61,16 @@ class _musicPlayerState extends State<musicPlayer> {
     }
   }
 
-  Future _loadFile() async {
-    final bytes = await readBytes(widget.kUrl1);
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/audio.mp3');
-
-    await file.writeAsBytes(bytes);
-    if (await file.exists()) {
-      setState(() {
-        localFilePath = file.path;
-      });
-    }
-  }
-
   Widget remoteUrl() {
-    return SingleChildScrollView(
-      child: _Tab(children: [
+    return Column(
+      children: <Widget>[
         Text(
-          'Sample 1 (${widget.kUrl1})',
+          '${widget.title}',
           key: Key('url1'),
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        PlayerWidget(url: widget.kUrl1),
-      ]),
+        PlayerWidget(url: widget.url),
+      ],
     );
   }
 
@@ -100,15 +106,6 @@ class _musicPlayerState extends State<musicPlayer> {
     );
   }
 
-  Widget notification() {
-    return _Tab(children: [
-      Text('Play notification sound: \'messenger.mp3\':'),
-      _Btn(
-          txt: 'Play',
-          onPressed: () =>
-              audioCache.play('messenger.mp3', isNotification: true)),
-    ]);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,22 +115,19 @@ class _musicPlayerState extends State<musicPlayer> {
             initialData: Duration(),
             value: advancedPlayer.onAudioPositionChanged),
       ],
-      child: DefaultTabController(
-        length: 1,
-        child: Scaffold(
-          appBar: AppBar(
-            bottom: TabBar(
-              tabs: [
-                Tab(text: 'Remote Url'),
-              ],
-            ),
-            title: Text('audioplayers Example'),
-          ),
-          body: TabBarView(
-            children: [
-              remoteUrl(),
-            ],
-          ),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Music Player'),
+          backgroundColor: Colors.black,
+          centerTitle: true,
+          leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: (){
+             _stop() ;
+             Navigator.of(context).pop();
+          }),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.only(top:15.0),
+          child: remoteUrl(),
         ),
       ),
     );
@@ -141,50 +135,16 @@ class _musicPlayerState extends State<musicPlayer> {
 }
 
 
-class _Tab extends StatelessWidget {
-  final List<Widget> children;
-
-  const _Tab({Key key, this.children}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        alignment: Alignment.topCenter,
-        padding: EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: children
-                .map((w) => Container(child: w, padding: EdgeInsets.all(6.0)))
-                .toList(),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Btn extends StatelessWidget {
-  final String txt;
-  final VoidCallback onPressed;
-
-  const _Btn({Key key, this.txt, this.onPressed}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ButtonTheme(
-        minWidth: 48.0,
-        child: RaisedButton(child: Text(txt), onPressed: onPressed));
-  }
-}
 
 
 
 
 
 
-enum PlayerState { stopped, playing, paused }
-enum PlayingRouteState { speakers, earpiece }
+
+///////////////////////////////////
+
+
 
 class PlayerWidget extends StatefulWidget {
   final String url;
@@ -204,12 +164,9 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   String url;
   PlayerMode mode;
 
-  AudioPlayer _audioPlayer;
   AudioPlayerState _audioPlayerState;
   Duration _duration;
-  Duration _position;
 
-  PlayerState _playerState = PlayerState.stopped;
   PlayingRouteState _playingRouteState = PlayingRouteState.speakers;
   StreamSubscription _durationSubscription;
   StreamSubscription _positionSubscription;
@@ -257,21 +214,21 @@ class _PlayerWidgetState extends State<PlayerWidget> {
               onPressed: _isPlaying ? null : () => _play(),
               iconSize: 64.0,
               icon: Icon(Icons.play_arrow),
-              color: Colors.cyan,
+              color: Colors.black,
             ),
             IconButton(
               key: Key('pause_button'),
               onPressed: _isPlaying ? () => _pause() : null,
               iconSize: 64.0,
               icon: Icon(Icons.pause),
-              color: Colors.cyan,
+              color: Colors.black,
             ),
             IconButton(
               key: Key('stop_button'),
               onPressed: _isPlaying || _isPaused ? () => _stop() : null,
               iconSize: 64.0,
               icon: Icon(Icons.stop),
-              color: Colors.cyan,
+              color: Colors.black,
             ),
             IconButton(
               onPressed: _earpieceOrSpeakersToggle,
@@ -279,7 +236,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
               icon: _isPlayingThroughEarpiece
                   ? Icon(Icons.volume_up)
                   : Icon(Icons.hearing),
-              color: Colors.cyan,
+              color: Colors.black,
             ),
           ],
         ),
@@ -413,7 +370,6 @@ class _PlayerWidgetState extends State<PlayerWidget> {
           : PlayingRouteState.speakers);
     return result;
   }
-
   Future<int> _stop() async {
     final result = await _audioPlayer.stop();
     if (result == 1) {
